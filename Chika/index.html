@@ -48,7 +48,8 @@
 	</style>
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
   <script>
-    $(document).click(function(e) {
+    
+    $(document).on('click touchstart', function(e) {
       // Check for left button
       if (e.button == 0) {
         document.getElementById('avid').muted = false;
