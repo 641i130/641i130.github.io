@@ -6,10 +6,26 @@
   <meta name="viewport" content="width=device-width">
 	<!-- Icons are weird -->
   <link rel="icon" href="./icon.PNG" type="image/png" sizes="16x16">
+  <link href="https://fonts.googleapis.com/css?family=Coda" rel="stylesheet">
+  <meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0'/>
 	<title>Chika Kawaii</title>
 	<style>
      body {
        background-color: black;
+       overflow: hidden;
+     }
+     h1 {
+       font-family: 'Coda', cursive;
+       position: absolute;
+       top: 50%;
+       left: 50%;
+       font-size: 100px;
+       transform: translate(-50%,-50%);
+       -ms-transform: translate(-50%,-50%);
+       background-color: none;
+       z-index:100;
+       color:white;
+       text-align: center;
      }
      .video-container {
        position: absolute;
@@ -20,42 +36,38 @@
        overflow: hidden;
      }
      .video-container video {
-       /* Make video to at least 100% wide and tall */
        min-width: 100%;
        min-height: 100%;
-       /* Setting width & height to auto prevents the browser from stretching or squishing the video */
        width: auto;
        height: auto;
-       /* Center the video */
        position: absolute;
        top: 50%;
        left: 50%;
        transform: translate(-50%,-50%);
      }
-     body {
-         overflow:hidden;
-     }
 	</style>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
   <script>
-    function onLoad() {
-      (function () {
-      var vidElem = document.getElementById('avid');
-      console.log(vidElem);
-      vidElem.addEventListener("ended", function () {
-              vidElem.currentTime = 2;
-              vidElem.play();
-      }, false);
-      })();
-    }
+    $(document).click(function(e) {
+      // Check for left button
+      if (e.button == 0) {
+        document.getElementById('avid').muted = false;
+        if (document.getElementById("clickpls")) {
+            document.getElementById("clickpls").parentNode.removeChild(document.getElementById("clickpls"));
+        }
+
+      }
+    });
   </script>
 </head>
-<body onload="onLoad();">
-  <!-- UWU -->
+<body>
+  <h1 id="clickpls">Chika Click</h1>
 	<div class="video-container">
-		<video id="avid" autoplay="true" loop="true">
+		<video id="avid" autoplay="true" loop="true" muted="true">
       <source src="./chika.mp4" autoplay type="video/mp4">
-        Your browser does not support HTML5 video.
     </video>
 	</div>
+
+
 </body>
 </html>
