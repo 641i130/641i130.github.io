@@ -53,6 +53,7 @@
       // Check for left button
       if (e.button == 0) {
         document.getElementById('avid').muted = false;
+	document.getElementById('avid').play();
         if (document.getElementById("clickpls")) {
             document.getElementById("clickpls").parentNode.removeChild(document.getElementById("clickpls"));
         }
@@ -64,7 +65,7 @@
 <body>
   <h1 id="clickpls">Chika Click</h1>
 	<div class="video-container">
-		<video id="avid" autoplay="true" loop="true" muted="true">
+		<video id="avid" controls="false" loop="true" muted="true">
       <source src="./chika.mp4" autoplay type="video/mp4">
     </video>
 	</div>
