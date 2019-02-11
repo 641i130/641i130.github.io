@@ -53,14 +53,12 @@
     if (navigator.userAgent.indexOf("Firefox") != -1 ) {
       console.log("Its autoplaying!!! YAYY!!!");
     } else {
-
       var node = document.createElement("h1");
       var textnode = document.createTextNode("Chika Click");
       node.appendChild(textnode);
       console.log(node);
       node.id = "clickpls";
       document.getElementById("Bod").appendChild(node);
-
       $(document).on('click touchstart', function(e) {
         // Check for left button
         if (e.button == 0) {
