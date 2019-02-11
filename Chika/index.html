@@ -49,8 +49,8 @@
 	</style>
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
   <script>
-
-    if(navigator.userAgent.indexOf("Firefox") != -1 ) {
+  function load() {
+    if (navigator.userAgent.indexOf("Firefox") != -1 ) {
       console.log("Its autoplaying!!! YAYY!!!");
     } else {
 
@@ -59,7 +59,7 @@
       node.appendChild(textnode);
       console.log(node);
       node.id = "clickpls";
-      document.getElementsByTagName("body").appendChild(node);
+      document.getElementById("Bod").appendChild(node);
 
       $(document).on('click touchstart', function(e) {
         // Check for left button
@@ -72,11 +72,13 @@
         }
       });
     }
+  }
+
 
 
   </script>
 </head>
-<body>
+<body id="Bod" onLoad="load();">
 	<div class="video-container">
 		<video id="avid" loop="true" autoplay="true">
       <source src="./chika.mp4" type="video/mp4">
