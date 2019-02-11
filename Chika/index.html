@@ -10,6 +10,7 @@
   <meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0'/>
 	<title>Chika Kawaii</title>
 	<style>
+
      body {
        background-color: black;
        overflow: hidden;
@@ -50,9 +51,16 @@
   <script>
 
     if(navigator.userAgent.indexOf("Firefox") != -1 ) {
-      document.getElementById('avid').muted = false;
-      document.getElementById('avid').play();
+      console.log("Its autoplaying!!! YAYY!!!");
     } else {
+
+      var node = document.createElement("h1");
+      var textnode = document.createTextNode("Chika Click");
+      node.appendChild(textnode);
+      console.log(node);
+      node.id = "clickpls";
+      document.getElementsByTagName("body").appendChild(node);
+
       $(document).on('click touchstart', function(e) {
         // Check for left button
         if (e.button == 0) {
@@ -69,10 +77,9 @@
   </script>
 </head>
 <body>
-  <h1 id="clickpls">Chika Click</h1>
 	<div class="video-container">
-		<video id="avid" controls="false" loop="true" muted="true">
-      <source src="./chika.mp4" autoplay type="video/mp4">
+		<video id="avid" loop="true" autoplay="true">
+      <source src="./chika.mp4" type="video/mp4">
     </video>
 	</div>
 
