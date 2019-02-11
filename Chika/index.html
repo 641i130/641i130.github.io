@@ -48,18 +48,24 @@
 	</style>
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
   <script>
-    
-    $(document).on('click touchstart', function(e) {
-      // Check for left button
-      if (e.button == 0) {
-        document.getElementById('avid').muted = false;
-	document.getElementById('avid').play();
-        if (document.getElementById("clickpls")) {
-            document.getElementById("clickpls").parentNode.removeChild(document.getElementById("clickpls"));
-        }
 
-      }
-    });
+    if(navigator.userAgent.indexOf("Firefox") != -1 ) {
+      document.getElementById('avid').muted = false;
+      document.getElementById('avid').play();
+    } else {
+      $(document).on('click touchstart', function(e) {
+        // Check for left button
+        if (e.button == 0) {
+          document.getElementById('avid').muted = false;
+          document.getElementById('avid').play();
+          if (document.getElementById("clickpls")) {
+              document.getElementById("clickpls").parentNode.removeChild(document.getElementById("clickpls"));
+          }
+        }
+      });
+    }
+
+
   </script>
 </head>
 <body>
