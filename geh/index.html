@@ -1,0 +1,70 @@
+<html class="gr__geh_moe">
+  <head>
+    <title>G E H</title>
+    <meta http-equiv="content-type" content="text/html; charset=windows-1252">
+    <link rel="shortcut icon" type="image/ico" href="./geh.ico"/>
+    
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+    <!--Geh-->
+    <!-- CarrotKumiko helped code this uwu -->
+    <style>
+      body {
+        overflow: hidden;
+        background-color: black;
+      }
+      #geh {
+        display: none;
+        position: absolute;
+        top: 0;
+        bottom: 0;           
+        width: auto;
+        height: auto;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%,-50%);
+        -ms-transform: translate(-50%,-50%);
+        -webkit-background-size: cover;
+        -moz-background-size: cover;
+        -o-background-size: cover;
+        background-size: cover;
+      }
+    </style>
+    
+    <script>
+      // Hide right click
+      document.addEventListener('contextmenu', event => event.preventDefault());
+      // Fade the Kumiko pic
+      $(document).ready(function(){
+        $("#geh").fadeIn(3000);
+      });
+      // Click effects for all
+      $(document).mousedown(function(event) {
+        switch (event.which) {
+            case 1:
+                origAudio = document.getElementById("geh_audio");
+                newAudio = origAudio.cloneNode();
+                newAudio.play();
+                console.log("Geh");
+                break;
+            case 2:
+              origAudio = document.getElementById("geh_audio2");
+                newAudio = origAudio.cloneNode();
+                newAudio.play();
+                console.log("Kawaii Geh");
+                break;
+            case 3:
+                origAudio = document.getElementById("geh_audio1");
+                newAudio = origAudio.cloneNode();
+                newAudio.play();
+                console.log("Long Geh");
+        }
+      });
+    </script>
+  </head>
+  <body>
+    <img id="geh" src="./geh.png" alt="GEH">
+    <audio id="geh_audio" src="./geh.mp3" type="audio/mpeg">
+    <audio id="geh_audio1" src="./long_geh.mp3" type="audio/mpeg">
+    <audio id="geh_audio2" src="./kawaii_geh.mp3" type="audio/mpeg">
+  </body>
+</html>
