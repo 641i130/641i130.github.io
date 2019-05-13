@@ -50,9 +50,6 @@
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
   <script>
   function load() {
-    if (navigator.userAgent.indexOf("Firefox") != -1 ) {
-      console.log("Its autoplaying!!! YAYY!!!");
-    } else {
       var node = document.createElement("h1");
       var textnode = document.createTextNode("E r r o r");
       node.appendChild(textnode);
@@ -70,10 +67,6 @@
         }
       });
     }
-  }
-
-
-
   </script>
 </head>
 <body id="Bod" onLoad="load();">
