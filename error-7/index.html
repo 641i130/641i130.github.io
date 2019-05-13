@@ -10,8 +10,7 @@
   <meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0'/>
 	<title>E R R O R</title>
 	<style>
-
-     body {
+    body {
        background-color: black;
        overflow: hidden;
      }
@@ -28,30 +27,21 @@
        color:white;
        text-align: center;
      }
-     .video-container {
-       position: absolute;
-       top: 0;
-       bottom: 0;
-       width: 100%;
-       height: 100%;
-       overflow: hidden;
-     }
-     .video-container video {
-       min-width: 100%;
-       min-height: 100%;
-       width: auto;
-       height: auto;
-       position: absolute;
-       top: 50%;
-       left: 50%;
-       transform: translate(-50%,-50%);
-     }
+     #avid {
+        position: absolute;
+        z-index: -1;
+        top: 0;
+        left: 0;
+        width: 100%; 
+        height: 100%;
+        object-fit: cover;
+      }
 	</style>
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
   <script>
   function load() {
       var node = document.createElement("h1");
-      var textnode = document.createTextNode("E r r o r");
+      var textnode = document.createTextNode("Click for Error");
       node.appendChild(textnode);
       console.log(node);
       node.id = "clickpls";
