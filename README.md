@@ -7,5 +7,9 @@ A thing full of useless websites and other web development files.
 + [GEH](https://641i130.github.io/geh/index.html)
 + [ERROR 7](https://641i130.github.io/error-7/index.html)
 
+## Stolen Refurbished Sites
+_This site won't work without you hosting it locally sadly._
++ [Dvorak Practice](https://641i130.github.io/dvorak-practice/lesson_1.html)
+
 ## Underconstruction Websites
 + [Endless Lasagna](https://641i130.github.io/endless-lasagna/index.html)
