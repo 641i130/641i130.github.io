@@ -1,0 +1,501 @@
+<!DOCTYPE HTML>
+<head>
+<title>Dvorak Training</title>
+<meta property="og:title" content="Dvorak Trainer">
+<script src="jquery-1.8.3.min.js"></script>
+<script src="jquery.caret.1.02.min.js"></script>
+<link rel=stylesheet type="text/css" href="/style.css">
+
+
+
+<script type="text/javascript">
+    function ii($s) {
+        // String interpolation. Just eval the result.
+        var $r = "'"
+        + $s.replace(/'/g, "\\'").replace(
+            /(\$[.\w]+\[\$[.\w]+\]|(\$[.\w]+))/g, "'+$1+'"
+            // Default is non-greedy, so "?" won't work.
+        ).replace(
+            /\$\.(\w)/g, 'this.$1'
+            // Perl 6-ish $.foo for object attributes
+        ).replace(
+            /<\/\./g, "</"
+            // Can't have "</" followed by a letter in <script>, so I use "</.foo".
+        ) + "'";
+        //alert($r);
+        return $r;
+    }
+
+    function time() {
+        // Return the current time as a timestamp in seconds
+        return (new Date()).valueOf() / 1000;
+    }
+
+    function el($id) {
+        return document.getElementById($id);
+    }
+
+    // Provide the XMLHttpRequest class for IE 5.x-6.x:
+    if (typeof XMLHttpRequest == "undefined") XMLHttpRequest = function() {
+        try { return new ActiveXObject("Msxml2.XMLHTTP.6.0") } catch(e) {}
+        try { return new ActiveXObject("Msxml2.XMLHTTP.3.0") } catch(e) {}
+        try { return new ActiveXObject("Msxml2.XMLHTTP") } catch(e) {}
+        try { return new ActiveXObject("Microsoft.XMLHTTP") } catch(e) {}
+    //    throw new Error( "This browser does not support XMLHttpRequest." )
+        return null;
+    };
+
+    function thingWithWords($arg) {
+
+        this.opera     = navigator.userAgent.indexOf("Opera") > -1;
+
+        for ($_ in $arg) this[$_] = $arg[$_];
+
+        if (!$arg.words) this.words = new Array('foo', 'bar', 'baz', 'xyzzy');
+        if (!$arg.interval) this.interval = 500;
+
+        this.current    = 0;            // Index of the current word
+        this.iscorrect  = new Array();  // Status of all previous words
+        this.starttime  = 0;            // Timestamp of first keypress (ms)
+        this.chars      = 0;            // Number of characters typed
+        this.goodchars  = 0;            // Number of characters typed and accepted
+        this.keypresses = 0;            // Number of keys pressed (released, really)
+        this.lastword   = false;        // Stop after_this word
+        this.wrongwords = new Array();  // For description of negative $delta
+        this.interval_id;               // ID to stop the interval
+        this.rawcpm;                    // $chars / $time
+        this.cpm;                       // $goodchars / $time
+        this.wpm;                       // $cpm / 5
+        this.enterused  = false;
+
+        this.do_hook = function($hook, $arg1, $arg2, $arg3, $arg4) {
+            if (!this[$hook]) return;
+            this[$hook].apply(this, new Array($arg1, $arg2, $arg3, $arg4));
+        }
+
+        this.render = function() {
+            this.do_hook('before_render');
+
+            var $newhtml = '';
+            if (this.current)
+                for (var $i = 0; $i < this.current; $i++) {
+                    var $class = this.iscorrect[$i] ? 'correct' : 'incorrect';
+                    $newhtml += eval(ii(
+                        "<span class=$class>$.words[$i]</.span>"
+                    ));
+                }
+            $newhtml += eval(ii(
+                "<span id=currentword>$.words[$.current]</.span>"
+            ));
+            $newhtml += '<span class=nextword>'
+                + this.words.slice(
+                    this.current + 1,
+                    this.words.length
+                ).join('</span><span class=nextword>')
+                + '</'+'span>'
+
+            var $words_el = el('words');
+            $words_el.innerHTML = $newhtml;
+
+            if (this.opera) $words_el.crollTop = 0;
+
+            var $scrollbase_el  = el('currentword');
+            var $scroll = (
+                $scrollbase_el.offsetTop - el('currentword').offsetHeight
+            );
+
+            $scroll -= $words_el.offsetTop;
+
+            if ($scroll < 0) $scroll = 0;
+    //        if ($scroll != $( $words_el ).scrollTop())
+                $( $words_el ).stop(true, true).animate({ scrollTop: $scroll }, 500);
+
+            this.do_hook('after_render');
+        };
+
+        this.calcspeed = function() {
+            var $seconds = time() - this.starttime;
+            if (!$seconds) return;  // div by zero when timer's bad
+            if (!this.current) return;  // div by zero
+
+            this.do_hook('before_calcspeed', $seconds);
+
+            this.rawcpm = Math.floor(this.chars / $seconds * 60);
+            this.cpm    = Math.floor(this.goodchars  / $seconds * 60);
+            this.wpm    = Math.round(this.cpm / 5);
+
+            this.do_hook('after_calcspeed', $seconds);
+        }
+
+        this.advance = function() {
+            this.do_hook('before_advance');
+
+            this.current++;
+
+            // this.lastword can be set by another function, but if we're actually
+            // at *the last word*, then force it to true.
+            if (this.current >= this.words.length) this.lastword = true;
+
+            this.calcspeed();
+
+            if (this.lastword) {
+                clearInterval(this.interval_id);
+                el('input').disabled = 1;
+                el('wordsbox').innerHTML = this.report ? this.report() : "Done!";
+                this.do_hook('after_report');
+            } else {
+                this.render();
+            }
+
+            this.do_hook('after_advance');
+        }
+
+        this.beforgiving = function ($given) {
+        }
+
+        this.keypress = function ($input_el, $event) {
+            var $value = $input_el.value;
+            var $length = $value.length;
+
+            var $word = this.words[this.current];
+            var $h = "";
+            for (var c = 0; c < $word.length; c++) {
+                if (c >= $value.length) {
+                    $h += $word[c];
+                } else if ($word[c] == $value[c]) {
+                    $h += '<span class=correct>' + $word[c] + '</span>';
+                } else {
+                    $h += '<span class=incorrect>' + $word[c] + '</span>';
+                }
+            }
+            $("#currentword").html($h);
+
+            this.do_hook('before_keypress', $value);
+            if (!$length) return;
+
+            this.keypresses++;
+
+            var $keycode = $event.which ? $event.which : $event.keyCode;
+            if ($keycode == 13) {
+                if (!this.enterused) {
+                    // first time
+                    alert("Use space bar instead of enter. It's faster. Use the 'Restart' link to start over.");
+                }
+                this.enterused = true;
+                // Enter pressed. Pretend that spacebar was pressed.
+                $input_el.value = $value += " ";
+            }
+
+            if (!$value.match(/[^ ]/)) {
+                // Only whitespace. Remove and ignore.
+                $input_el.value = $value.replace(/^ +/, '');
+                return;
+            }
+
+            if (!this.starttime) {
+                this.starttime = time();
+                var $this = this;  // for closure
+                this.interval_id = setInterval(
+                    this.ticktock // premature optimization? :)
+                        ? function () { $this.ticktock(); }
+                        : function () { null; },
+                    this.interval
+                );
+            }
+
+            var $wordandspace = $value.match(/^.+? /);
+            if (!$wordandspace) {
+
+                this.do_hook('after_keypress', $value);
+                return;
+            }
+            $wordsandspace = new String($wordandspace);  // coerce
+
+            $input_el.value = $value.replace(/^.+? +/, "");
+            this.chars += $wordsandspace.length;
+
+            var $given    = $wordsandspace.match(/^[^ ]+/);
+            var $expected = this.words[this.current];
+
+            if ($given == $expected) {
+                this.do_hook('on_correct_word', $given);
+                this.goodchars += $wordsandspace.length;
+                this.iscorrect[this.current] = true;
+                this.advance();
+            } else if (this.allowwrong) {
+                this.do_hook('on_wrong_word', $given, $expected);
+                if (!this.strictwrong) {
+                    // Mitigate damage when someone forgets the spacebar or presses
+                    // it before_finishing a word
+                    for (var $delta = -2; $delta <= 3; $delta++) {
+                        if ($delta == 0) continue;
+                        if ($given != this.words[this.current + $delta]) continue;
+
+                        if ($delta > 0) {
+                            // a-ha! user skipped $delta words
+                            for (var $i = 0; $i < $delta; $i++) {
+                                this.do_hook(
+                                    'on_skipped_word', this.words[this.current]
+                                );
+                                this.iscorrect[this.current] = false;
+                                this.current++;
+                            }
+                        } else {
+                            // extra space in a word: user "skipped -1 or -2 words"
+                            if (this.iscorrect[this.current + $delta]) break;
+                            var $extra = new Array();
+                            for (; $delta < 0; $delta++) {
+                                this.current--;
+                                $extra.unshift(this.wrongwords[this.current]);
+                            }
+                            this.do_hook('on_extra_words', $extra);
+                        }
+                        this.goodchars += $wordsandspace.length;
+                        this.iscorrect[this.current] = true;
+                    }
+                }
+                this.advance();
+            } else {
+                $("#currentword").html(this.words[this.current]);
+                // do nothing
+            }
+            this.do_hook('after_keypress', $value);
+        };
+
+        this.init = function() {
+            this.do_hook('before_init');
+            this.render();
+            this.do_hook('after_init');
+        };
+    }
+
+
+
+var $words = new Array("'''''''',.',.color: white;',..,'',.,.'.,'.,'.",'wcvrxzfwvcrxrzxcwffc','seesawed','bastion','hogshead','sabotaged','shags','windbag','wades','quahogs','noway','wastage','tabued','digested','tubing','bushes','dungs','equate','unending','subdue','anybody','bigwig','behead','obsess','beans','absents','boogie','bases','anodyne','wayside','swagging','dowse','quaintest','outstays','shady','nightshade','agates','dungeons','gassy','bushed','buzzed','busying','budding','bossiness','boney','setting','biddies','downsize','quasi','subjugated','gangways','ingots','bequeath','bogey','joshed','benign','zoning','inquest','eighths','beside','hugging','bagginess','newbies','butting','doggones','dieting','hogwash','tweets','anesthetized','nighty','shanghaied','woodies','beatings','weeding','wowing','babysitting','swatting','jinxing','extinguished','witness','sausages','sangs','sexist','bogies','debated','bidding','sidings','banquet','queened','boogies','betas','substantiate','obsidian','disunity','unwinds','bushiest','goodbyes','bobbed','annoys','yeast','goatees','daubs');
+function shuffle(a) {
+        var j, x, i;
+        for (i = a.length - 1; i > 0; i--) {
+            j = Math.floor(Math.random() * (i + 1));
+            x = a[i];
+            a[i] = a[j];
+            a[j] = x;
+        }
+        a = $words;
+    }
+    shuffle($words);
+var $tutor = new thingWithWords({  // I have a thing with words ;)
+        words: $words,
+        allowwrong: false
+    });
+    $tutor.prevkey = "";
+
+    $tutor.report = function () {
+        var $report = eval(ii(
+            "<p id=result>Done!</p> "
+        ));
+        return $report;
+    };
+
+    $tutor.before_init = $tutor.after_render = function () {
+        el('progress').innerHTML = (this.current+1) + " / " + this.words.length;
+    }
+
+    $tutor.after_init = $tutor.after_advance = $tutor.before_keypress = function (){
+        if (!el('input')) return;
+        var $value = el('input').value;
+        var $word = this.words[this.current];
+        var $key = $word.substring(0, $value.length) == $value
+            ? $word.charAt($value.length)
+            : "BS";
+
+            if (this.prevkeytimer) clearTimeout(this.prevkeytimer);
+        var $el = el('key_' + this.prevkey);
+        if ($el) $el.style.textDecoration = 'inherit';
+        $el = el('key_' + $key);
+        this.prevkey = $key;
+        var $timeout = $key == "BS" ? 0 : 5000;
+        this.prevkeytimer = setTimeout(function() {
+            if ($el) $el.style.textDecoration = 'blink';
+        }, $timeout);
+
+    }
+
+    $tutor.report = function () {
+        var $minutes = Math.round((time() - this.starttime) / 60);
+        var $minute_s = $minutes == 1 ? "minute" : "minutes";
+        var $lesson = 2;
+        var $next = $lesson + 1;
+        var $r = eval(ii(
+            "<p id=report>Done with lesson $lesson! You typed $.current words in "
+            + "approximately $minutes $minute_s<b></.b>."
+            + ($lesson < 5 ? "<p>If you are comfortable with your speed and accuracy, <a href=\""
+            + "/?lesson=$next\">step up to lesson $next</a>."
+            : "That's it &mdash; Congratulations! If this is fast enough for you, you're done now." ) + "If you want to "
+            + "continue practicing at the same level, <a href=\"/?lesson=$lesson\">"
+            + "restart lesson $lesson</a>."
+    ));
+        var $accuracy = Math.round(1000 - (this.keypresses-this.goodchars)/2/this.goodchars*1000);
+        $accuracy = $accuracy / 10;
+        if ($accuracy < 90) $r += eval(ii(
+            "<p>Because of your accuracy of only $accuracy%, you should probably "
+            + "do the same lesson again to improve your aim."
+        ));
+        return $r;
+    }
+
+    function oninit() {
+        $input_el = el('input');
+        $input_el.value = "";
+        $input_el.focus();
+        $tutor.init();
+    }
+
+    var tb = {
+        "qwerty": "`1234567890-="
+                        +"qwertyuiop[]\\"
+                        +"asdfghjkl;' "
+                        +" zxcvbnm,./"
+
+                        +"~!@#$%^&*()_+"
+                        +"QWERTYUIOP{}|"
+                        +"ASDFGHJKL:\" "
+                        +" ZXCVBNM<>?",
+        "azerty": "²&é\"'(-è_çà)="
+                        +"azertyuiop^$ "
+                        +"qsdfghjklmù*"
+                        +"<wxcvbn,;:!"
+
+                        +" 1234567890°+"
+                        +"AZERTYUIOP¨£ "
+                        +"QSDFGHJKLM%µ"
+                        +">WXCVBN?./§"
+
+                        +"  ̃#{[|̃\\^@]}"
+                        +"  €        ¤ "
+                        +"            "
+                        +"           ",
+        "qwertz": "^1234567890ß́"
+                        +"qwertzuiopü+ "
+                        +"asdfghjklöä#"
+                        +"<yxcvbnm,.-"
+
+                        +"°!\"§$%&/()=?̀"
+                        +"QWERTZUIOPÜ* "
+                        +"ASDFGHJKLÖÄ'"
+                        +">YXCVBNM;:_"
+
+                        +"  ²³   {[]}\\ "
+                        +"@ €         ~"
+                        +"            "
+                        +"|      µ   ",
+        "dvorak":
+                "`1234567890[]"
+                        +"',.pyfgcrl/=\\"
+                        +"aoeuidhtns- "
+                        +" ;qjkxbmwvz"
+
+                        +"~!@#$%^&*(){}"
+                        +"\"<>PYFGCRL?+|"
+                        +"AOEUIDHTNS_ "
+                        +" :QJKXBMWVZ",
+        "colemak":
+                "`1234567890-="
+                        +"qwfpgjluy;[]\\"
+                        +"arstdhneio' "
+                        +" zxcvbkm,./"
+
+                        +"~!@#$%^&*()_+"
+                        +"QWFPGJLUY:{}|"
+                        +"ARSTDHNEIO\" "
+                        +" ZXCVBKM<>?"
+    };
+
+
+    $(function () {
+        var fromkb = "dvorak";
+        if (window.localStorage && window.localStorage['fromkb']) {
+            fromkb = localStorage['fromkb'];
+            $("#kbselect [value='" + fromkb + "']").attr("selected", "selected");
+        }
+
+        $("#input").bind("keypress", function (event) {
+            if (fromkb == "dvorak") return;
+            var key = event.which;
+            var from = String.fromCharCode(key);
+            if (from == " ") return true;
+            var offset = tb[fromkb].indexOf(from);
+            if (offset < 0) return true;
+            var to = tb.dvorak.substring(offset, offset + 1);
+            console.log(key, from, offset, to);
+
+            var pos = $(this).caret().start + 1;
+            $(this).val( $(this).caret().replace( to ) ).caret({ start: pos, end: pos });;
+
+            event.preventDefault();
+        });
+
+        $("#kbselect").bind("change", function () {
+            fromkb = $("#kbselect :selected").val();
+            $("#input").focus();
+            if (window.localStorage) {
+                localStorage['fromkb'] = fromkb;
+            }
+        });
+    });
+
+
+</script>
+<style>
+.cookiebar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        background: rgba(255,255,255,.8);
+        border-bottom: 2px solid rgba(0,0,255,.8);
+        padding: 1em;
+        width: 100%;
+        z-index: 3000;
+        line-height: 4ex;
+}
+.cookiebar > div {
+        /* max-width: 160ex; */
+        margin: auto;
+}
+.cookies_ok {
+        color: green !important;
+        white-space: nowrap;
+}
+.cookiebar > a {
+        letter-spacing: normal !important;
+        text-decoration: underline;
+}
+</style>
+</head>
+<body onload="oninit()">
+<div id=all-outer>
+<div id=all-inner>
+<div id=testui>
+<h1>Dvorak Training</h1>
+<div id=border>
+<form method=get>
+<input type=hidden name=lang value="en">
+<div id=score>
+<span>
+<span id=progress>?</span>
+<span>
+<select id="kbselect">
+<option value="dvorak">No keyboard mapping</option><option value="qwerty">Map QWERTY to Dvorak</option><option value="qwertz">Map QWERTZ to Dvorak</option><option value="azerty">Map AZERTY to Dvorak</option>
+</select>
+</span>
+</div>
+</form>
+<div id=wordsbox>
+<div id=words-outer>
+<div id=words onclick="el('input').focus();"></div>
+</div>
+<input id=input onkeyup="$tutor.keypress(this, event);" autocomplete=off>
+</div>
+</div>
+<p>
+<pre id=kb title="Click to hide" style="cursor: pointer" onclick="$(this).slideUp(2000);"><span class=shift>&nbsp;&nbsp;<span class="key">~</span>&nbsp;&nbsp;<span class="key">!</span>&nbsp;&nbsp;<span class="key">@</span>&nbsp;&nbsp;<span class="key">#</span>&nbsp;&nbsp;<span class="key">$</span>&nbsp;&nbsp;<span class="key">%</span>&nbsp;&nbsp;<span class="key">^</span>&nbsp;&nbsp;<span class="key">&</span>&nbsp;&nbsp;<span class="key">*</span>&nbsp;&nbsp;<span class="key">(</span>&nbsp;&nbsp;<span class="key">)</span>&nbsp;&nbsp;<span class="key">{</span>&nbsp;&nbsp;<span class="key">}</span>&nbsp;&nbsp;<span class="special">____</span></span><br>&nbsp;&nbsp;<span class="key">`</span>&nbsp;&nbsp;<span class="key">1</span>&nbsp;&nbsp;<span class="key">2</span>&nbsp;&nbsp;<span class="key">3</span>&nbsp;&nbsp;<span class="key">4</span>&nbsp;&nbsp;<span class="key">5</span>&nbsp;&nbsp;<span class="key">6</span>&nbsp;&nbsp;<span class="key">7</span>&nbsp;&nbsp;<span class="key">8</span>&nbsp;&nbsp;<span class="key">9</span>&nbsp;&nbsp;<span class="key">0</span>&nbsp;&nbsp;<span class="key">[</span>&nbsp;&nbsp;<span class="key">]</span>&nbsp;<span class="key">&nbsp;</span>&nbsp;<span class="special"><span class=hitme id="key_BS">BS</span></span>&nbsp;<br><span class=shift>&nbsp;<span class="special">___</span>&nbsp;&nbsp;<span class="key">"</span>&nbsp;&nbsp;<span class="key"><</span>&nbsp;&nbsp;<span class="key">></span>&nbsp;&nbsp;<span class="key">&nbsp;</span>&nbsp;&nbsp;<span class="key">&nbsp;</span>&nbsp;&nbsp;<span class="key">&nbsp;</span>&nbsp;&nbsp;<span class="key">&nbsp;</span>&nbsp;&nbsp;<span class="key">&nbsp;</span>&nbsp;&nbsp;<span class="key">&nbsp;</span>&nbsp;&nbsp;<span class="key">&nbsp;</span>&nbsp;&nbsp;<span class="key">?</span>&nbsp;&nbsp;<span class="key">+</span>&nbsp;&nbsp;<span class="key">|</span>&nbsp;&nbsp;</span><br>&nbsp;<span class="special">Tab</span>&nbsp;&nbsp;<span class="key">'</span>&nbsp;&nbsp;<span class="key">,</span>&nbsp;&nbsp;<span class="key">.</span>&nbsp;&nbsp;<span class="key">P</span>&nbsp;&nbsp;<span class="key">Y</span>&nbsp;&nbsp;<span class="key">F</span>&nbsp;&nbsp;<span class="key">G</span>&nbsp;&nbsp;<span class="key">C</span>&nbsp;&nbsp;<span class="key">R</span>&nbsp;&nbsp;<span class="key">L</span>&nbsp;&nbsp;<span class="key">/</span>&nbsp;&nbsp;<span class="key">=</span>&nbsp;&nbsp;<span class="key">\</span>&nbsp;&nbsp;<br><span class=shift>&nbsp;<span class="special">____</span>&nbsp;&nbsp;<span class="key">&nbsp;</span>&nbsp;&nbsp;<span class="key">&nbsp;</span>&nbsp;&nbsp;<span class="key">&nbsp;</span>&nbsp;&nbsp;<span class="key">&nbsp;</span>&nbsp;&nbsp;<span class="key">&nbsp;</span>&nbsp;&nbsp;<span class="key">&nbsp;</span>&nbsp;&nbsp;<span class="key">&nbsp;</span>&nbsp;&nbsp;<span class="key">&nbsp;</span>&nbsp;&nbsp;<span class="key">&nbsp;</span>&nbsp;&nbsp;<span class="key">&nbsp;</span>&nbsp;&nbsp;<span class="key">_</span>&nbsp;&nbsp;<span class="special">_____</span></span><br>&nbsp;<span class="special">Caps</span>&nbsp;&nbsp;<span class="key"><span class=hitme id="key_a">A</span></span>&nbsp;&nbsp;<span class="key"><span class=hitme id="key_o">O</span></span>&nbsp;&nbsp;<span class="key"><span class=hitme id="key_e">E</span></span>&nbsp;&nbsp;<span class="key"><span class=hitme id="key_u">U</span></span>&nbsp;&nbsp;<span class="key"><span class=hitme id="key_i">I</span></span>&nbsp;&nbsp;<span class="key"><span class=hitme id="key_d">D</span></span>&nbsp;&nbsp;<span class="key"><span class=hitme id="key_h">H</span></span>&nbsp;&nbsp;<span class="key"><span class=hitme id="key_t">T</span></span>&nbsp;&nbsp;<span class="key"><span class=hitme id="key_n">N</span></span>&nbsp;&nbsp;<span class="key"><span class=hitme id="key_s">S</span></span>&nbsp;&nbsp;<span class="key">-</span>&nbsp;&nbsp;<span class="special">Enter</span><br><span class=shift>&nbsp;_____&nbsp;&nbsp;<span class="key">:</span>&nbsp;&nbsp;<span class="key">&nbsp;</span>&nbsp;&nbsp;<span class="key">&nbsp;</span>&nbsp;&nbsp;<span class="key">&nbsp;</span>&nbsp;&nbsp;<span class="key">&nbsp;</span>&nbsp;&nbsp;<span class="key">&nbsp;</span>&nbsp;&nbsp;<span class="key">&nbsp;</span>&nbsp;&nbsp;<span class="key">&nbsp;</span>&nbsp;&nbsp;<span class="key">&nbsp;</span>&nbsp;&nbsp;<span class="key">&nbsp;</span>&nbsp;&nbsp;_______</span><br>&nbsp;<span class="special">Shift</span>&nbsp;&nbsp;<span class="key">;</span>&nbsp;&nbsp;<span class="key">Q</span>&nbsp;&nbsp;<span class="key">J</span>&nbsp;&nbsp;<span class="key">K</span>&nbsp;&nbsp;<span class="key">X</span>&nbsp;&nbsp;<span class="key">B</span>&nbsp;&nbsp;<span class="key">M</span>&nbsp;&nbsp;<span class="key">W</span>&nbsp;&nbsp;<span class="key">V</span>&nbsp;&nbsp;<span class="key">Z</span>&nbsp;<span class="key">&nbsp;</span>&nbsp;<span class="special">Shift</span>&nbsp;<br><br></pre>
+</body>

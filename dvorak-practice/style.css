@@ -1,0 +1,236 @@
+
+body {
+    background: black;
+    margin: 0;
+    padding: 0;
+    font-size: 16px;
+    text-align: center;
+}
+body, input {
+    font-family: "Open Sans", "DejaVu Sans", "Bitstream Vera Sans", "Arial", sans-serif;
+}
+
+h1 {
+    color:white;
+    padding-top: 20px;
+    margin-top: 0;
+    margin-bottom: 20px;
+}
+h1.tst {
+    font-size: 500%;
+    font-family: 'Faster One';
+    font-weight: normal;
+    color: #888;
+    text-shadow: -5px 0 5px rgba(255,0,0,.3);
+}
+h2 {
+    margin-top: 1em;
+    font-size: 140%;
+}
+
+dt {
+    display: inline-block;
+    margin-left: auto;
+    margin-right: auto;
+    font-style: italic;
+    font-weight: 600;
+    color: #666;
+    background: black;
+    margin-bottom: 0.5ex;
+    padding-left: 1ex;
+    padding-right: 1ex;
+    padding-top: 0.5ex;
+    padding-bottom: 0.5ex;
+    border-radius: 10px;
+    letter-spacing: 1px;
+}
+dd {
+    text-indent: 0;
+    margin: 1ex;
+    margin-bottom: 1.5em;
+}
+#all-outer {
+    padding-left: 3em;
+    padding-right: 3em;
+}
+#all-inner {
+    color: rgb(161, 161, 161);;
+    max-width: 65em;
+    margin-left: auto;
+    margin-right: auto;
+    background: black;
+    border-bottom-left-radius: 10px;
+    border-bottom-right-radius: 10px;
+    padding-bottom: 1em;
+}
+#words {
+    color:black;
+    font-size: 160%;
+    text-align: center;
+    border: 0;
+    background:black;
+}
+#input {
+    color:rgb(161, 161, 161);;
+    font-size: 160%;
+    text-align: center;
+    border: 0;
+    background:black;
+}
+#testui, .testui {
+    margin: auto;
+    max-width: 80ex;
+}
+#wordsbox {
+    color:rgb(161, 161, 161);;
+    clear: both;
+    text-align: center;
+    font-size: 120%;
+    background: black;
+}
+#result {
+    font-size: 120%;
+}
+#result big {
+    color: #444;
+    font-size: 120%;
+    font-family: 'Faster One';
+    font-weight: normal;
+}
+#result big:first-child {
+    font-size: 200%;
+}
+#result big.fire {
+    color: rgb(161, 161, 161);;
+    text-shadow: 0 0 17px rgba(0,0,0,.2), 4px 0px 8px rgb(161, 161, 161);, -1px -9px 15px yellow, -2px 0px 13px #ff8000, -1px -11px 20px red
+}
+#result big.fire:first-child {
+    color: rgb(161, 161, 161);;
+    text-shadow: 0 0 17px rgba(0,0,0,.2), 4px 0px 8px rgb(161, 161, 161);, -1px -10px 18px yellow, -2px -1px 19px #ff8000, -1px -17px 25px red
+}
+#words-outer {
+    padding: 1ex;
+    background: black;
+    border-bottom: 1px solid black;
+}
+#words {
+    box-sizing: border-box;
+    background: black;
+    color:rgb(161, 161, 161);
+    height: 9ex;
+    overflow: hidden;
+    line-height: 3ex;
+    font-family: "Droid Sans Mono", "DejaVu Sans Mono", "Bitstream Vera Mono", "Consolas", "Lucida Console", monospace;
+}
+#input {
+    display: block;
+    width: 100%;
+    margin: auto;
+    text-align: center;
+    letter-spacing: 2px;
+}
+#input:focus {
+    outline: none;
+}
+#words > span {
+    background-color: black;
+    display: inline-block;
+    padding: 0 0.2em;
+    position: relative;
+    margin-right: 0.1em;
+}
+#currentword {
+    background: #0067a3;
+    border-radius: 5px;
+}
+.incorrect {
+    color: rgb(228, 228, 228);
+}
+.correct {
+    color: rgb(39, 39, 39);
+}
+#currentword .correct {
+    color: rgba(105, 105, 105, 0.671);
+    
+}
+#score {
+    color:rgb(161, 161, 161);;
+    background: black;
+    margin: auto;
+    padding: 1ex;
+    line-height: 2ex;
+
+}
+#border {
+    border: 1px solid black;
+    border-radius: 1ex;
+    background: black;
+}
+#score {
+    text-align: center;
+    border-bottom: 1px solid black;
+}
+
+#score span {
+    background-color: black;
+    display: inline-block;
+    min-width: 4ex;
+    font-size: 80%;
+    padding: 2px;
+}
+#progress, #rawcpm, #cpm, #wpm, #timer {
+    text-align: right;
+    background: black;
+    color:rgb(161, 161, 161);
+}
+#score span#progress {
+    min-width: 9ex;
+    background-color: black;
+}
+#score select, #score input {
+    font-size: 80%;
+}
+#words small {
+    font-size: 50%;
+    line-height: normal;
+}
+option {
+    background: no-repeat;
+    text-indent: 16px;
+}
+a img {
+    border: 0;
+}
+pre {
+    text-align: center;
+    font-size: 80%;
+}
+.special, .shift, .key {
+    font-weight: bold;
+}
+.key {
+    color: white;
+}
+.special {
+    color: white;
+}
+.shift {
+    color: white;
+}
+.hitme {
+    color: white;
+}
+#footer {
+    text-align: center;
+    margin: 2em;
+    font-size: xx-small;
+}
+#dummyinput {
+    position: absolute;
+    top: 0;
+    left: 0;
+    opacity: 0;
+    width: 1;
+    height: 1;
+    font-size: 1%;
+}
