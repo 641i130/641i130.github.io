@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width">
+  <meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0'/>
+	<title></title>
+	<style>
+	</style>
+  <script>
+      function number(min, max) {
+        return Math.floor(Math.random() * (+max - +min)) + +min; 
+      }
+      function random() {
+        gif_index = number(0,5);
+        window.location = "./" + gif_index + ".gif";
+      }
+  </script>
+</head>
+<body onLoad="random();">
+
+</body>
+</html>
